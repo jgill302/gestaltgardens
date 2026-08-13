@@ -96,7 +96,41 @@ function getArchetype(answers: Record<string, string>): Archetype {
       name: "Water Garden",
       tagline: "Sound as sanctuary",
       description:
-        "Subtle water sounds introduce non-repeating natural noise, helpingÿúþÚ$z{ÿ¶»§q«^ÿõr() {
+        "Subtle water sounds introduce non-repeating natural noise, helping your nervous system shift out of alert mode. A stone basin, a slow stream, or a simple overflow -- water becomes the heartbeat of your outdoor space. In Austin, moving water also cools surrounding air.",
+      image: "/images/archetype-water-garden.jpg",
+    };
+  }
+
+  if (feeling === "social" || style === "balanced") {
+    return {
+      name: "Gathering Terrace",
+      tagline: "Togetherness through restraint",
+      description:
+        "Not every garden is solitary. Your space is designed for slow gatherings -- warm wood seating, natural stone underfoot, and plantings that create gentle boundaries without walls. The design still follows restraint: every element earns its place.",
+      image: "/images/archetype-gathering-terrace.jpg",
+    };
+  }
+
+  if (style === "natural" || feeling === "restorative") {
+    return {
+      name: "Contemplation Garden",
+      tagline: "Nature as nervous system reset",
+      description:
+        "Your ideal garden leans into the natural landscape of central Texas, working with native grasses, weathered stone, and shade trees to create a space that feels like it has always been there. Restoration comes from immersion, not decoration.",
+      image: "/images/archetype-contemplation-garden.jpg",
+    };
+  }
+
+  return {
+    name: "Japandi Retreat",
+    tagline: "Warmth meets discipline",
+    description:
+      "The warmth of Scandinavian craft meets Japanese restraint. Clean lines, natural wood, intentional greenery, and a balance between cozy and minimal. Your space bridges indoor comfort with outdoor calm -- perfect for Austin's mild winters.",
+    image: "/images/archetype-japandi-retreat.jpg",
+  };
+}
+
+export function DirectionFinder() {
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [result, setResult] = useState<Archetype | null>(null);
