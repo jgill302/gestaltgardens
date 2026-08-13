@@ -96,41 +96,7 @@ function getArchetype(answers: Record<string, string>): Archetype {
       name: "Water Garden",
       tagline: "Sound as sanctuary",
       description:
-        "Subtle water sounds introduce non-repeating natural noise, helping your nervous system shift out of alert mode. A stone basin, a slow stream, or a simple overflow -- water becomes the heartbeat of your outdoor space. In Austin, moving water also cools surrounding air.",
-      image: "/images/archetype-water-garden.jpg",
-    };
-  }
-
-  if (feeling === "social" || style === "balanced") {
-    return {
-      name: "Gathering Terrace",
-      tagline: "Togetherness through restraint",
-      description:
-        "Not every garden is solitary. Your space is designed for slow gatherings -- warm wood seating, natural stone underfoot, and plantings that create gentle boundaries without walls. The design still follows restraint: every element earns its place.",
-      image: "/images/archetype-gathering-terrace.jpg",
-    };
-  }
-
-  if (style === "natural" || feeling === "restorative") {
-    return {
-      name: "Contemplation Garden",
-      tagline: "Nature as nervous system reset",
-      description:
-        "Your ideal garden leans into the natural landscape of central Texas, working with native grasses, weathered stone, and shade trees to create a space that feels like it has always been there. Restoration comes from immersion, not decoration.",
-      image: "/images/archetype-contemplation-garden.jpg",
-    };
-  }
-
-  return {
-    name: "Japandi Retreat",
-    tagline: "Warmth meets discipline",
-    description:
-      "The warmth of Scandinavian craft meets Japanese restraint. Clean lines, natural wood, intentional greenery, and a balance between cozy and minimal. Your space bridges indoor comfort with outdoor calm -- perfect for Austin's mild winters.",
-    image: "/images/archetype-japandi-retreat.jpg",
-  };
-}
-
-export function DirectionFinder() {
+        "Subtle water sounds introduce non-repeating natural noise, helpingÿúþÚ$z{ÿ¶»§q«^ÿõr() {
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [result, setResult] = useState<Archetype | null>(null);
@@ -143,6 +109,7 @@ export function DirectionFinder() {
   const [showInquiryForm, setShowInquiryForm] = useState(false);
   const [inquirySubmitted, setInquirySubmitted] = useState(false);
   const [inquiryLoading, setInquiryLoading] = useState(false);
+  const [inquiryError, setInquiryError] = useState<string | null>(null);
 
   const isComplete = step >= questions.length;
   const current = questions[step];
@@ -173,6 +140,7 @@ export function DirectionFinder() {
     setInvestmentData(null);
     setShowInquiryForm(false);
     setInquirySubmitted(false);
+    setInquiryError(null);
   }
 
   function handleInvestmentComplete(estimate: string, size: string, timeline: string) {
@@ -183,6 +151,7 @@ export function DirectionFinder() {
   async function handleInquirySubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setInquiryLoading(true);
+    setInquiryError(null);
 
     const formData = new FormData(e.currentTarget);
     const name = formData.get("name") as string;
@@ -192,7 +161,7 @@ export function DirectionFinder() {
     const message = formData.get("message") as string;
 
     try {
-      await fetch("/api/send-email", {
+      const response = await fetch("/api/send-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -211,10 +180,20 @@ export function DirectionFinder() {
           },
         }),
       });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "We could not send your inquiry. Please try again.");
+      }
+
       setInquirySubmitted(true);
-    } catch {
-      // Still show success to user, email logged on server
-      setInquirySubmitted(true);
+    } catch (error) {
+      setInquiryError(
+        error instanceof Error
+          ? error.message
+          : "We could not send your inquiry. Please try again."
+      );
     } finally {
       setInquiryLoading(false);
     }
@@ -297,6 +276,14 @@ export function DirectionFinder() {
 
           {/* Inquiry Form */}
           <form onSubmit={handleInquirySubmit} className="space-y-5 animate-fade-in-up">
+            {inquiryError && (
+              <div
+                role="alert"
+                className="rounded-lg border border-destructive/30 bg-destructive/5 p-4"
+              >
+                <p className="text-sm text-destructive">{inquiryError}</p>
+              </div>
+            )}
             <div>
               <label
                 htmlFor="name"
