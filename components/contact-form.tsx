@@ -84,7 +84,10 @@ export function ContactForm() {
   return (
     <form onSubmit={handleSubmit} className="mx-auto max-w-lg">
       {error && (
-        <div className="mb-6 rounded-lg border border-destructive/30 bg-destructive/5 p-4">
+        <div
+          role="alert"
+          className="mb-6 rounded-lg border border-destructive/30 bg-destructive/5 p-4"
+        >
           <p className="text-sm text-destructive">{error}</p>
         </div>
       )}

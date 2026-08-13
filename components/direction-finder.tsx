@@ -143,6 +143,7 @@ export function DirectionFinder() {
   const [showInquiryForm, setShowInquiryForm] = useState(false);
   const [inquirySubmitted, setInquirySubmitted] = useState(false);
   const [inquiryLoading, setInquiryLoading] = useState(false);
+  const [inquiryError, setInquiryError] = useState<string | null>(null);
 
   const isComplete = step >= questions.length;
   const current = questions[step];
@@ -173,6 +174,7 @@ export function DirectionFinder() {
     setInvestmentData(null);
     setShowInquiryForm(false);
     setInquirySubmitted(false);
+    setInquiryError(null);
   }
 
   function handleInvestmentComplete(estimate: string, size: string, timeline: string) {
@@ -183,6 +185,7 @@ export function DirectionFinder() {
   async function handleInquirySubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setInquiryLoading(true);
+    setInquiryError(null);
 
     const formData = new FormData(e.currentTarget);
     const name = formData.get("name") as string;
@@ -192,7 +195,7 @@ export function DirectionFinder() {
     const message = formData.get("message") as string;
 
     try {
-      await fetch("/api/send-email", {
+      const response = await fetch("/api/send-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -211,10 +214,20 @@ export function DirectionFinder() {
           },
         }),
       });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "We could not send your inquiry. Please try again.");
+      }
+
       setInquirySubmitted(true);
-    } catch {
-      // Still show success to user, email logged on server
-      setInquirySubmitted(true);
+    } catch (error) {
+      setInquiryError(
+        error instanceof Error
+          ? error.message
+          : "We could not send your inquiry. Please try again."
+      );
     } finally {
       setInquiryLoading(false);
     }
@@ -297,6 +310,14 @@ export function DirectionFinder() {
 
           {/* Inquiry Form */}
           <form onSubmit={handleInquirySubmit} className="space-y-5 animate-fade-in-up">
+            {inquiryError && (
+              <div
+                role="alert"
+                className="rounded-lg border border-destructive/30 bg-destructive/5 p-4"
+              >
+                <p className="text-sm text-destructive">{inquiryError}</p>
+              </div>
+            )}
             <div>
               <label
                 htmlFor="name"
