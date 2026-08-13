@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
 
 const RECIPIENT_EMAIL = "us.gestaltgardens@gmail.com";
+const FROM_EMAIL =
+  process.env.RESEND_FROM_EMAIL ||
+  "Gestalt Gardens <onboarding@resend.dev>";
 
 // Initialize Resend - will use RESEND_API_KEY from env
 const resend = process.env.RESEND_API_KEY
@@ -22,6 +25,14 @@ interface EmailPayload {
 
 export async function POST(request: NextRequest) {
   try {
+    if (!resend) {
+      console.error("[Email] RESEND_API_KEY is not configured");
+      return NextResponse.json(
+        { error: "Email service is temporarily unavailable. Please try again later." },
+        { status: 503 }
+      );
+    }
+
     const body: EmailPayload = await request.json();
 
     // Validate required fields
@@ -134,30 +145,21 @@ ${body.message}
 This inquiry was submitted through the Gestalt Gardens website.
     `.trim();
 
-    // Send email via Resend if configured
-    if (resend) {
-      const { error } = await resend.emails.send({
-        from: "Gestalt Gardens <onboarding@resend.dev>",
-        to: RECIPIENT_EMAIL,
-        replyTo: body.email,
-        subject,
-        html: htmlContent,
-        text: textContent,
-      });
+    const { error } = await resend.emails.send({
+      from: FROM_EMAIL,
+      to: RECIPIENT_EMAIL,
+      replyTo: body.email,
+      subject,
+      html: htmlContent,
+      text: textContent,
+    });
 
-      if (error) {
-        console.error("[Email] Resend error:", error);
-        return NextResponse.json(
-          { error: "Failed to send email" },
-          { status: 500 }
-        );
-      }
-    } else {
-      // Fallback: log email for development
-      console.log("[Email] No RESEND_API_KEY configured, logging instead:");
-      console.log("[Email] To:", RECIPIENT_EMAIL);
-      console.log("[Email] Subject:", subject);
-      console.log("[Email] Content:", textContent);
+    if (error) {
+      console.error("[Email] Resend error:", error);
+      return NextResponse.json(
+        { error: "We could not send your message. Please try again." },
+        { status: 502 }
+      );
     }
 
     return NextResponse.json({
